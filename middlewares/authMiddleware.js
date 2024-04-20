@@ -22,11 +22,11 @@ const protectRoute = async (req, res, next) => {
 
       next();
     } else {
-      return res.status(403).json({ status: false, message: 'Unauthorized' });
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
   } catch (error) {
     console.error(error);
-    return res.status(403).json({ status: false, message: 'Unauthorized' });
+    return res.status(401).json({ status: 'error', message: 'Unauthorized' });
   }
 };
 
@@ -34,8 +34,8 @@ const isAdminRoute = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
-    return res.status(401).json({
-      status: false,
+    return res.status(403).json({
+      status: 'error',
       message: 'Admin privileges required',
     });
   }

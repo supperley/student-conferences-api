@@ -1,23 +1,22 @@
 import express from 'express';
 import { isAdminRoute, protectRoute } from '../middlewares/authMiddleware.js';
 import {
-  activateUser,
-  changeUserPassword,
+  changeStatus,
   deleteUser,
+  getAllUsers,
   getUserById,
   updateUser,
 } from '../controllers/userController.js';
 
 const router = express.Router();
 
-router.get('/users/:id', protectRoute, getUserById);
-router.put('/profile', protectRoute, updateUser);
-router.put('/change-password', protectRoute, changeUserPassword);
+// router.get('/', protectRoute, getAllUsers);
+router.get('/', getAllUsers);
+router.get('/:id', protectRoute, getUserById);
+router.patch('/:id', protectRoute, updateUser);
 
-// //   FOR ADMIN ONLY - ADMIN ROUTES
-router
-  .route('/:id')
-  .put(protectRoute, isAdminRoute, activateUser)
-  .delete(protectRoute, isAdminRoute, deleteUser);
+// FOR ADMIN ONLY - ADMIN ROUTES
+router.delete('/:id', protectRoute, isAdminRoute, deleteUser);
+router.patch('/:id/status', protectRoute, isAdminRoute, changeStatus);
 
 export default router;

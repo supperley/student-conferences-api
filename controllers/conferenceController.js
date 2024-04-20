@@ -4,7 +4,7 @@ export const createConference = async (req, res) => {
   const authorId = req.user.userId;
 
   if (!content) {
-    return res.status(400).json({ error: 'Все поля обязательны' });
+    return res.status(400).json({ status: 'error', message: 'Все поля обязательны' });
   }
 
   try {
@@ -19,7 +19,9 @@ export const createConference = async (req, res) => {
   } catch (error) {
     console.error('Error in createConference:', error);
 
-    res.status(500).json({ error: 'There was an error creating the conference' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'There was an error creating the conference' });
   }
 };
 
@@ -45,7 +47,7 @@ export const getAllConferences = async (req, res) => {
 
     res.json(conferencesWithLikeInfo);
   } catch (err) {
-    res.status(500).json({ error: 'Произошла ошибка при получении постов' });
+    res.status(500).json({ status: 'error', message: 'Произошла ошибка при получении постов' });
   }
 };
 
@@ -68,7 +70,7 @@ export const getConferenceById = async (req, res) => {
     });
 
     if (!conference) {
-      return res.status(404).json({ error: 'Пост не найден' });
+      return res.status(404).json({ status: 'error', message: 'Пост не найден' });
     }
 
     const conferenceWithLikeInfo = {
@@ -78,7 +80,7 @@ export const getConferenceById = async (req, res) => {
 
     res.json(conferenceWithLikeInfo);
   } catch (error) {
-    res.status(500).json({ error: 'Произошла ошибка при получении поста' });
+    res.status(500).json({ status: 'error', message: 'Произошла ошибка при получении поста' });
   }
 };
 
@@ -89,11 +91,11 @@ export const deleteConference = async (req, res) => {
   const conference = await prisma.conference.findUnique({ where: { id } });
 
   if (!conference) {
-    return res.status(404).json({ error: 'Пост не найден' });
+    return res.status(404).json({ status: 'error', message: 'Пост не найден' });
   }
 
   if (conference.authorId !== req.user.userId) {
-    return res.status(403).json({ error: 'Нет доступа' });
+    return res.status(403).json({ status: 'error', message: 'Forbidden' });
   }
 
   try {
@@ -105,6 +107,6 @@ export const deleteConference = async (req, res) => {
 
     res.json(transaction);
   } catch (error) {
-    res.status(500).json({ error: 'Что-то пошло не так' });
+    res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
   }
 };

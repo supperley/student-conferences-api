@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import authRoutes from './authRoutes.js';
 import userRoutes from './userRoutes.js';
-// import taskRoutes from './taskRoutes.js';
+import conferenceRoutes from './conferenceRoutes.js';
 
 const uploadDestination = 'uploads';
 
@@ -19,7 +19,7 @@ const upload = multer({ storage: storage });
 const router = express.Router();
 
 router.use('/auth', authRoutes);
-router.use('/user', userRoutes);
-// router.use('/task', taskRoutes);
+router.use('/users', userRoutes);
+router.use('/conferences', conferenceRoutes);
 
 export default router;

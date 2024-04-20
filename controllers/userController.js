@@ -1,11 +1,31 @@
 import User from '../models/user.js';
 
+export const getAllUsers = async (req, res) => {
+  try {
+    let users = await User.find({});
+    // const user = await prisma.user.findUnique({
+    //   where: { id },
+    //   include: {
+    //     followers: true,
+    //     following: true,
+    //   },
+    // });
+
+    users.forEach((user) => {
+      user.password = undefined;
+    });
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
 export const getUserById = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.userId;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(id);
     // const user = await prisma.user.findUnique({
     //   where: { id },
     //   include: {
@@ -15,12 +35,14 @@ export const getUserById = async (req, res) => {
     // });
 
     if (!user) {
-      return res.status(404).json({ error: 'Пользователь не найден' });
+      return res.status(404).json({ status: 'error', message: 'Пользователь не найден' });
     }
 
-    res.json({ ...user });
+    user.password = undefined;
+
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
@@ -36,8 +58,8 @@ export const updateUser = async (req, res) => {
     }
 
     // Проверка, что пользователь обновляет свою информацию
-    if (id !== req.user.userId || req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Unauthorized' });
+    if (id !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
 
     const user = await User.findById(id);
@@ -53,66 +75,40 @@ export const updateUser = async (req, res) => {
       user.password = undefined;
 
       res.status(201).json({
-        status: true,
+        status: 'ok',
         message: 'Profile updated successfully',
         user: updatedUser,
       });
     } else {
-      res.status(404).json({ status: false, message: 'User not found' });
+      res.status(404).json({ status: 'error', message: 'User not found' });
     }
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ status: false, message: 'Internal server error' });
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
-export const changeUserPassword = async (req, res) => {
-  try {
-    const { userId } = req.user;
-
-    const user = await User.findById(userId);
-
-    if (user) {
-      user.password = req.body.password;
-
-      await user.save();
-
-      user.password = undefined;
-
-      res.status(201).json({
-        status: true,
-        message: `Password changed successfully`,
-      });
-    } else {
-      res.status(404).json({ status: false, message: 'User not found' });
-    }
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ status: false, message: error.message });
-  }
-};
-
-export const activateUser = async (req, res) => {
+export const changeStatus = async (req, res) => {
   try {
     const { id } = req.params;
 
     const user = await User.findById(id);
 
     if (user) {
-      user.status = req.body.status; //!user.isActive
+      user.status = req.body.status;
 
       await user.save();
 
       res.status(201).json({
-        status: true,
+        status: 'ok',
         message: `User account has been ${user?.status === 'active' ? 'activated' : 'disabled'}`,
       });
     } else {
-      res.status(404).json({ status: false, message: 'User not found' });
+      res.status(404).json({ status: 'ok', message: 'User not found' });
     }
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ status: false, message: error.message });
+    return res.status(400).json({ status: 'ok', message: error.message });
   }
 };
 
@@ -122,9 +118,9 @@ export const deleteUser = async (req, res) => {
 
     await User.findByIdAndDelete(id);
 
-    res.status(200).json({ status: true, message: 'User deleted successfully' });
+    res.status(200).json({ status: 'ok', message: 'User deleted successfully' });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ status: false, message: error.message });
+    return res.status(400).json({ status: 'error', message: error.message });
   }
 };

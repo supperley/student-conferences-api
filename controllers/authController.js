@@ -8,7 +8,7 @@ export const register = async (req, res) => {
 
     // Проверяем поля
     if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Все поля обязательны' });
+      return res.status(400).json({ status: 'error', message: 'Все поля обязательны' });
     }
 
     const existingUser = await User.findOne({ email });
@@ -45,7 +45,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Invalid user data' });
     }
   } catch (error) {
-    console.error('Error in register:', error);
+    console.error(error);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -66,8 +66,6 @@ export const login = async (req, res) => {
         message: 'User account has been deactivated, contact the administrator',
       });
     }
-
-    console.log(user);
 
     // Check the password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -123,12 +121,40 @@ export const current = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(403).json({ error: 'Unauthorized' });
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
+
+    user.password = undefined;
 
     return res.status(200).json(user);
   } catch (error) {
-    console.log('err', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.log(error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { password } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (user) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+
+      await user.save();
+
+      res.status(201).json({
+        status: 'ok',
+        message: `Password changed successfully`,
+      });
+    } else {
+      res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ status: 'error', message: error.message });
   }
 };
