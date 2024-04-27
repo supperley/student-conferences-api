@@ -7,13 +7,13 @@ import {
   getUserById,
   updateUser,
 } from '../controllers/userController.js';
+import { multerUpload } from '../utils/index.js';
 
 const router = express.Router();
 
-// router.get('/', protectRoute, getAllUsers);
 router.get('/', getAllUsers);
 router.get('/:id', protectRoute, getUserById);
-router.patch('/:id', protectRoute, updateUser);
+router.patch('/:id', protectRoute, multerUpload.single('avatar'), updateUser);
 
 // FOR ADMIN ONLY - ADMIN ROUTES
 router.delete('/:id', protectRoute, isAdminRoute, deleteUser);

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import multer from 'multer';
 
 export const dbConnection = async () => {
   try {
@@ -25,3 +26,15 @@ export const createJWT = (res, userId) => {
 
   return token;
 };
+
+const uploadDestination = 'uploads';
+
+// Показываем, где хранить загружаемые файлы
+const storage = multer.diskStorage({
+  destination: uploadDestination,
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+export const multerUpload = multer({ storage: storage });

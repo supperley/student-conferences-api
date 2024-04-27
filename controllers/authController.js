@@ -1,13 +1,16 @@
 import User from '../models/user.js';
 import { createJWT } from '../utils/index.js';
 import bcrypt from 'bcryptjs';
+import path from 'path';
+import fs from 'fs';
+import * as jdenticon from 'jdenticon';
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { login, email, password, first_name, last_name, role } = req.body;
 
     // Проверяем поля
-    if (!email || !password || !name) {
+    if (!email || !password || !login || !first_name || !last_name) {
       return res.status(400).json({ status: 'error', message: 'Все поля обязательны' });
     }
 
@@ -23,18 +26,20 @@ export const register = async (req, res) => {
     // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // // Генерируем аватар для нового пользователя
-    // const png = Jdenticon.toPng(name, 200);
-    // const avatarName = `${name}_${Date.now()}.png`;
-    // const avatarPath = path.join(__dirname, '/../uploads', avatarName);
-    // fs.writeFileSync(avatarPath, png);
+    // Генерируем аватар для нового пользователя
+    const png = jdenticon.toPng(login, 200);
+    const avatarName = `${login}_${Date.now()}.png`;
+    const avatarPath = path.join(path.resolve(), '/uploads', avatarName);
+    fs.writeFileSync(avatarPath, png);
 
     const user = await User.create({
-      name,
+      login,
       email,
       password: hashedPassword,
+      first_name,
+      last_name,
       role,
-      // avatarUrl: `/uploads/${avatarName}`,
+      avatarUrl: `/uploads/${avatarName}`,
     });
 
     if (user) {

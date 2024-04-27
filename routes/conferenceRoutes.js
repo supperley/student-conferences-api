@@ -1,17 +1,20 @@
 import express from 'express';
 import {
   createConference,
-  deleteConference,
+  // deleteConference,
   getAllConferences,
   getConferenceById,
+  updateConference,
 } from '../controllers/conferenceController.js';
 import { protectRoute } from '../middlewares/authMiddleware.js';
+import { multerUpload } from '../utils/index.js';
 
 const router = express.Router();
 
-router.post('/', protectRoute, createConference);
+router.post('/', protectRoute, multerUpload.single('image'), createConference);
 router.get('/', protectRoute, getAllConferences);
 router.get('/:id', protectRoute, getConferenceById);
-router.delete('/:id', protectRoute, deleteConference);
+router.patch('/:id', protectRoute, updateConference);
+// router.delete('/:id', protectRoute, deleteConference);
 
 export default router;

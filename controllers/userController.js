@@ -3,13 +3,6 @@ import User from '../models/user.js';
 export const getAllUsers = async (req, res) => {
   try {
     let users = await User.find({});
-    // const user = await prisma.user.findUnique({
-    //   where: { id },
-    //   include: {
-    //     followers: true,
-    //     following: true,
-    //   },
-    // });
 
     users.forEach((user) => {
       user.password = undefined;
@@ -26,13 +19,6 @@ export const getUserById = async (req, res) => {
 
   try {
     const user = await User.findById(id);
-    // const user = await prisma.user.findUnique({
-    //   where: { id },
-    //   include: {
-    //     followers: true,
-    //     following: true,
-    //   },
-    // });
 
     if (!user) {
       return res.status(404).json({ status: 'error', message: 'Пользователь не найден' });
@@ -51,15 +37,15 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { email, name, role } = req.body;
 
+    // Проверка, что пользователь обновляет свою информацию
+    if (id !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'Forbidden' });
+    }
+
     let filePath;
 
     if (req.file && req.file.path) {
       filePath = req.file.path;
-    }
-
-    // Проверка, что пользователь обновляет свою информацию
-    if (id !== req.user.userId && req.user.role !== 'admin') {
-      return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
 
     const user = await User.findById(id);

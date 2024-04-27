@@ -1,112 +1,129 @@
+import * as jdenticon from 'jdenticon';
+import path from 'path';
+import fs from 'fs';
+import Conference from '../models/conference.js';
+
 export const createConference = async (req, res) => {
-  const { content } = req.body;
-
-  const authorId = req.user.userId;
-
-  if (!content) {
-    return res.status(400).json({ status: 'error', message: 'Все поля обязательны' });
-  }
-
   try {
-    const conference = await prisma.conference.create({
-      data: {
-        content,
-        authorId,
-      },
+    const { title, description, date, administrator, faculties, link } = req.body;
+
+    let imagePath;
+
+    if (req.file && req.file.path) {
+      imagePath = `${req.file.destination}/${req.file.filename}`;
+    }
+
+    // Проверяем поля
+    if (!title || !administrator) {
+      return res.status(400).json({ status: 'error', message: 'Проверьте обязательные поля' });
+    }
+
+    if (!imagePath) {
+      // Генерируем аватар для нового пользователя
+      const image = jdenticon.toPng(title, 200);
+      const imageName = `$conference_${Date.now()}.png`;
+      imagePath = path.join('uploads', imageName);
+      fs.writeFileSync(imagePath, image);
+    }
+
+    const conference = await Conference.create({
+      title,
+      description,
+      date,
+      administrator,
+      faculties,
+      link,
+      imageUrl: `/${imagePath}`,
     });
 
-    res.json(conference);
+    if (conference) {
+      res.status(201).json(conference);
+    } else {
+      return res.status(400).json({ status: 'error', message: 'Invalid conference data' });
+    }
   } catch (error) {
     console.error('Error in createConference:', error);
-
-    res
-      .status(500)
-      .json({ status: 'error', message: 'There was an error creating the conference' });
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
 export const getAllConferences = async (req, res) => {
-  const userId = req.user.userId;
-
   try {
-    const conferences = await prisma.conference.findMany({
-      include: {
-        likes: true,
-        author: true,
-        comments: true,
-      },
-      orderBy: {
-        createdAt: 'desc', // 'desc' означает сортировку по убыванию, т.е. новые посты будут первыми
-      },
-    });
-
-    const conferencesWithLikeInfo = conferences.map((conference) => ({
-      ...conference,
-      likedByUser: conference.likes.some((like) => like.userId === userId),
-    }));
-
-    res.json(conferencesWithLikeInfo);
+    const conferences = await Conference.find({}).populate('administrator');
+    res.json(conferences);
   } catch (err) {
-    res.status(500).json({ status: 'error', message: 'Произошла ошибка при получении постов' });
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
 export const getConferenceById = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.userId;
-
   try {
-    const conference = await prisma.conference.findUnique({
-      where: { id },
-      include: {
-        comments: {
-          include: {
-            user: true,
-          },
-        },
-        likes: true,
-        author: true,
-      }, // Include related conferences
-    });
+    const conference = await Conference.findById(id).populate('administrator');
 
     if (!conference) {
-      return res.status(404).json({ status: 'error', message: 'Пост не найден' });
+      return res.status(404).json({ status: 'error', message: 'Not found' });
     }
 
-    const conferenceWithLikeInfo = {
-      ...conference,
-      likedByUser: conference.likes.some((like) => like.userId === userId),
-    };
-
-    res.json(conferenceWithLikeInfo);
+    res.json(conference);
   } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Произошла ошибка при получении поста' });
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
-export const deleteConference = async (req, res) => {
-  const { id } = req.params;
-
-  // Проверка, что пользователь удаляет свой пост
-  const conference = await prisma.conference.findUnique({ where: { id } });
-
-  if (!conference) {
-    return res.status(404).json({ status: 'error', message: 'Пост не найден' });
-  }
-
-  if (conference.authorId !== req.user.userId) {
-    return res.status(403).json({ status: 'error', message: 'Forbidden' });
-  }
-
+export const updateConference = async (req, res) => {
   try {
-    const transaction = await prisma.$transaction([
-      prisma.comment.deleteMany({ where: { conferenceId: id } }),
-      prisma.like.deleteMany({ where: { conferenceId: id } }),
-      prisma.conference.delete({ where: { id } }),
-    ]);
+    const { id } = req.params;
 
-    res.json(transaction);
+    const { title, description, date, administrator, imageUrl, faculties, link, status } = req.body;
+
+    const conference = await Conference.findById(id);
+
+    if (!conference) {
+      return res.status(404).json({ status: 'error', message: 'Not found' });
+    } else {
+      // Проверка, что пользователь изменяет свою конференцию
+      if (conference.administrator.toString() !== req.user.userId && req.user.role !== 'admin') {
+        console.log(conference.administrator.toString());
+        return res.status(403).json({ status: 'error', message: 'Forbidden' });
+      }
+
+      conference.title = title || conference.title;
+      conference.description = description || conference.description;
+      conference.date = date || conference.date;
+      conference.administrator = administrator || conference.administrator;
+      conference.imageUrl = imageUrl || conference.imageUrl;
+      conference.faculties = faculties || conference.faculties;
+      conference.link = link || conference.link;
+      conference.status = status || conference.status;
+
+      const updatedConference = await conference.save();
+
+      res.status(200).json({ status: 'ok', message: 'Conference updated successfully' });
+    }
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
   }
 };
+
+// export const deleteConference = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const conference = await Conference.findById(id);
+
+//     if (!conference) {
+//       return res.status(404).json({ status: 'error', message: 'Not found' });
+//     }
+//     // Проверка, что пользователь удаляет свою конференцию
+//     if (conference.administrator.id !== req.user.userId || req.user.role !== 'admin') {
+//       return res.status(403).json({ status: 'error', message: 'Forbidden' });
+//     }
+
+//     await Conference.findByIdAndDelete(id);
+
+//     res.status(200).json({ status: 'ok', message: 'Conference deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
+//   }
+// };
