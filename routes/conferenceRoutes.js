@@ -14,7 +14,7 @@ const router = express.Router();
 router.post('/', protectRoute, multerUpload.single('image'), createConference);
 router.get('/', protectRoute, getAllConferences);
 router.get('/:id', protectRoute, getConferenceById);
-router.patch('/:id', protectRoute, updateConference);
+router.patch('/:id', protectRoute, multerUpload.single('image'), updateConference);
 // router.delete('/:id', protectRoute, deleteConference);
 
 export default router;

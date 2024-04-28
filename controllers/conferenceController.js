@@ -75,7 +75,7 @@ export const updateConference = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { title, description, date, administrator, imageUrl, faculties, link, status } = req.body;
+    const { title, description, date, administrator, faculties, image, link, status } = req.body;
 
     const conference = await Conference.findById(id);
 
@@ -84,18 +84,26 @@ export const updateConference = async (req, res) => {
     } else {
       // Проверка, что пользователь изменяет свою конференцию
       if (conference.administrator.toString() !== req.user.userId && req.user.role !== 'admin') {
-        console.log(conference.administrator.toString());
+        console.log(req.user.userId);
         return res.status(403).json({ status: 'error', message: 'Forbidden' });
+      }
+
+      let imagePath = conference.imageUrl;
+
+      if (req.file && req.file.path) {
+        imagePath = `/${req.file.destination}/${req.file.filename}`;
+      } else if (image === 'delete') {
+        imagePath = null;
       }
 
       conference.title = title || conference.title;
       conference.description = description || conference.description;
       conference.date = date || conference.date;
       conference.administrator = administrator || conference.administrator;
-      conference.imageUrl = imageUrl || conference.imageUrl;
       conference.faculties = faculties || conference.faculties;
       conference.link = link || conference.link;
       conference.status = status || conference.status;
+      conference.imageUrl = imagePath;
 
       const updatedConference = await conference.save();
 
