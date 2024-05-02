@@ -21,7 +21,6 @@ const UserSchema = new mongoose.Schema(
     last_name: { type: String, required: true },
     patronymic: { type: String },
     faculty: { type: String },
-    department: { type: String },
     position: { type: String },
     avatarUrl: { type: String },
   },

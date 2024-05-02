@@ -35,26 +35,31 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, name, role } = req.body;
+    const { first_name, last_name, email, faculty, position, avatar, role } = req.body;
 
     // Проверка, что пользователь обновляет свою информацию
     if (id !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
 
-    let filePath;
-
-    if (req.file && req.file.path) {
-      filePath = req.file.path;
-    }
-
     const user = await User.findById(id);
 
+    let avatarPath = user.avatarUrl;
+
+    if (req.file && req.file.path) {
+      avatarPath = `/${req.file.destination}/${req.file.filename}`;
+    } else if (avatar === 'delete') {
+      avatarPath = null;
+    }
+
     if (user) {
-      user.name = name || user.name;
+      user.first_name = first_name || user.first_name;
+      user.last_name = last_name || user.last_name;
       user.email = email || user.email;
+      user.faculty = faculty || user.faculty;
+      user.position = position || user.position;
       user.role = role || user.role;
-      user.avatarUrl = filePath ? `/${filePath}` : user.avatarUrl;
+      user.avatarUrl = avatarPath;
 
       const updatedUser = await user.save();
 

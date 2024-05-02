@@ -19,9 +19,9 @@ export const createConference = async (req, res) => {
     }
 
     if (!imagePath) {
-      // Генерируем аватар для нового пользователя
+      // Генерируем для новой конференции
       const image = jdenticon.toPng(title, 200);
-      const imageName = `$conference_${Date.now()}.png`;
+      const imageName = `conference_${Date.now()}.png`;
       imagePath = path.join('uploads', imageName);
       fs.writeFileSync(imagePath, image);
     }
