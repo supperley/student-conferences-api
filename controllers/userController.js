@@ -10,6 +10,7 @@ export const getAllUsers = async (req, res) => {
 
     res.json(users);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -28,6 +29,7 @@ export const getUserById = async (req, res) => {
 
     res.json(user);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -35,7 +37,7 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { first_name, last_name, email, faculty, position, avatar, role } = req.body;
+    const { first_name, last_name, email, faculty, position, avatar, role, status } = req.body;
 
     // Проверка, что пользователь обновляет свою информацию
     if (id !== req.user.userId && req.user.role !== 'admin') {
@@ -59,6 +61,7 @@ export const updateUser = async (req, res) => {
       user.faculty = faculty || user.faculty;
       user.position = position || user.position;
       user.role = role || user.role;
+      user.status = status || user.status;
       user.avatarUrl = avatarPath;
 
       const updatedUser = await user.save();
@@ -74,7 +77,7 @@ export const updateUser = async (req, res) => {
       res.status(404).json({ status: 'error', message: 'User not found' });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -98,7 +101,7 @@ export const changeStatus = async (req, res) => {
       res.status(404).json({ status: 'ok', message: 'User not found' });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(400).json({ status: 'ok', message: error.message });
   }
 };
@@ -111,7 +114,7 @@ export const deleteUser = async (req, res) => {
 
     res.status(200).json({ status: 'ok', message: 'User deleted successfully' });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(400).json({ status: 'error', message: error.message });
   }
 };

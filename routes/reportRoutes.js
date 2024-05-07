@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createReport,
+  createReportComment,
   deleteReport,
   getAllReports,
   getReportById,
@@ -12,6 +13,7 @@ import { multerUpload } from '../utils/index.js';
 const router = express.Router();
 
 router.post('/', protectRoute, multerUpload.single('file'), createReport);
+router.post('/:id/comment', protectRoute, createReportComment);
 router.get('/', protectRoute, getAllReports);
 router.get('/:id', protectRoute, getReportById);
 router.patch('/:id', protectRoute, multerUpload.single('file'), updateReport);

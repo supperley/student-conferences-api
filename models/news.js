@@ -5,7 +5,7 @@ const NewsSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String },
     author: { type: Schema.Types.ObjectId, ref: 'User' },
-    tags: [{ type: String }],
+    faculties: [{ type: String }],
     imageUrl: { type: String },
     chip: { type: String },
     // chip: { label: 'Конференция', value: 'conference' },

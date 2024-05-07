@@ -51,7 +51,8 @@ export const getAllConferences = async (req, res) => {
   try {
     const conferences = await Conference.find({}).populate('administrator');
     res.json(conferences);
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -67,6 +68,7 @@ export const getConferenceById = async (req, res) => {
 
     res.json(conference);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -110,28 +112,29 @@ export const updateConference = async (req, res) => {
       res.status(200).json({ status: 'ok', message: 'Conference updated successfully' });
     }
   } catch (error) {
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
   }
 };
 
-// export const deleteConference = async (req, res) => {
-//   try {
-//     const { id } = req.params;
+export const deleteConference = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-//     const conference = await Conference.findById(id);
+    const conference = await Conference.findById(id);
 
-//     if (!conference) {
-//       return res.status(404).json({ status: 'error', message: 'Not found' });
-//     }
-//     // Проверка, что пользователь удаляет свою конференцию
-//     if (conference.administrator.id !== req.user.userId || req.user.role !== 'admin') {
-//       return res.status(403).json({ status: 'error', message: 'Forbidden' });
-//     }
+    if (!conference) {
+      return res.status(404).json({ status: 'error', message: 'Not found' });
+    }
+    // Проверка, что пользователь удаляет свою конференцию
+    if (conference.administrator.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'Forbidden' });
+    }
 
-//     await Conference.findByIdAndDelete(id);
+    await Conference.findByIdAndDelete(id);
 
-//     res.status(200).json({ status: 'ok', message: 'Conference deleted successfully' });
-//   } catch (error) {
-//     res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
-//   }
-// };
+    res.status(200).json({ status: 'ok', message: 'Conference deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
+  }
+};

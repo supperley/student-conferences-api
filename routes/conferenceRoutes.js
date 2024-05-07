@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   createConference,
-  // deleteConference,
+  deleteConference,
   getAllConferences,
   getConferenceById,
   updateConference,
@@ -15,6 +15,6 @@ router.post('/', protectRoute, multerUpload.single('image'), createConference);
 router.get('/', protectRoute, getAllConferences);
 router.get('/:id', protectRoute, getConferenceById);
 router.patch('/:id', protectRoute, multerUpload.single('image'), updateConference);
-// router.delete('/:id', protectRoute, deleteConference);
+router.delete('/:id', protectRoute, deleteConference);
 
 export default router;

@@ -62,11 +62,11 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ status: 'error', message: 'Invalid email or password.' });
+      return res.status(400).json({ status: 'error', message: 'Invalid email or password.' });
     }
 
     if (!user?.status === 'active') {
-      return res.status(401).json({
+      return res.status(403).json({
         status: 'error',
         message: 'User account has been deactivated, contact the administrator',
       });
@@ -82,10 +82,10 @@ export const login = async (req, res) => {
       res.status(200).json(user);
       // res.json({ token });
     } else {
-      return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
+      return res.status(400).json({ status: 'error', message: 'Invalid email or password' });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -99,7 +99,7 @@ export const logout = async (req, res) => {
 
     res.status(200).json({ status: 'success', message: 'Logout successful' });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -133,7 +133,7 @@ export const current = async (req, res) => {
 
     return res.status(200).json(user);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
@@ -159,7 +159,7 @@ export const changePassword = async (req, res) => {
       res.status(404).json({ status: 'error', message: 'User not found' });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({ status: 'error', message: error.message });
   }
 };
