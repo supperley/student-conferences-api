@@ -7,7 +7,7 @@ export const createNews = async (req, res) => {
     let imagePath;
 
     if (req.file && req.file.path) {
-      imagePath = `${req.file.destination}/${req.file.filename}`;
+      imagePath = `/${req.file.destination}/${req.file.filename}`;
     }
 
     // Проверяем поля
@@ -69,5 +69,68 @@ export const getNewsById = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+export const deleteNews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const news = await News.findById(id);
+
+    if (!news) {
+      return res.status(404).json({ status: 'error', message: 'Not found' });
+    }
+    // Проверка, что пользователь удаляет свою новость
+    if (news.author.toString() !== req.user.userId && req.user.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'Forbidden' });
+    }
+
+    await News.findByIdAndDelete(id);
+
+    res.status(200).json({ status: 'ok', message: 'News deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Что-то пошло не так' });
+  }
+};
+
+export const updateNews = async (req, res) => {
+  try {
+    console.log(req.body);
+    console.log(req.file);
+    const { id } = req.params;
+
+    const { title, description, faculties, chip, image } = req.body;
+
+    const news = await News.findById(id);
+
+    if (!news) {
+      return res.status(404).json({ status: 'error', message: 'Not found' });
+    } else {
+      if (news.author.toString() !== req.user.userId && req.user.role !== 'admin') {
+        return res.status(403).json({ status: 'error', message: 'Forbidden' });
+      }
+
+      let imagePath = news.imageUrl;
+
+      if (req.file && req.file.path) {
+        imagePath = `/${req.file.destination}/${req.file.filename}`;
+      } else if (image === 'delete') {
+        imagePath = null;
+      }
+
+      news.title = title || news.title;
+      news.description = description || news.description;
+      news.faculties = faculties || news.faculties;
+      news.chip = chip || news.chip;
+      news.imageUrl = imagePath;
+
+      const updatedNews = await news.save();
+
+      res.status(200).json({ status: 'ok', message: 'News updated successfully' });
+    }
+  } catch (error) {
+    console.error('Error in updateNews:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };

@@ -10,7 +10,7 @@ export const createConference = async (req, res) => {
     let imagePath;
 
     if (req.file && req.file.path) {
-      imagePath = `${req.file.destination}/${req.file.filename}`;
+      imagePath = `/${req.file.destination}/${req.file.filename}`;
     }
 
     // Проверяем поля

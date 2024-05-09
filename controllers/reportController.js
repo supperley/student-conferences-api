@@ -12,8 +12,10 @@ export const createReport = async (req, res) => {
     let filePath;
 
     if (req.file && req.file.path) {
-      filePath = `${req.file.destination}/${req.file.filename}`;
+      filePath = `/${req.file.destination}/${req.file.filename}`;
     }
+
+    console.log(req.file);
 
     // Проверяем поля
     if (!req.user || !conference || !title) {
@@ -34,7 +36,7 @@ export const createReport = async (req, res) => {
       conference,
       author: req.user?.userId,
       supervisor,
-      fileUrl: `/${filePath}`,
+      fileUrl: `${filePath}`,
     });
 
     if (report) {
