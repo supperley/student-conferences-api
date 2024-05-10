@@ -25,7 +25,7 @@ export const createReport = async (req, res) => {
     // if (!filePath) {
     //   // Генерируем для новой конференции
     //   const image = jdenticon.toPng(title, 200);
-    //   const imageName = `report_${Date.now()}.png`;
+    //   const imageName = `report-${Date.now()}.png`;
     //   filePath = path.join('uploads', imageName);
     //   fs.writeFileSync(filePath, image);
     // }
@@ -36,7 +36,7 @@ export const createReport = async (req, res) => {
       conference,
       author: req.user?.userId,
       supervisor,
-      fileUrl: `${filePath}`,
+      fileUrl: filePath,
     });
 
     if (report) {
@@ -94,6 +94,9 @@ export const updateReport = async (req, res) => {
     const { id } = req.params;
     const { title, description, supervisor, status, file } = req.body;
 
+    console.log(req.file);
+    console.log(req.body);
+
     const report = await Report.findById(id);
 
     if (!report) {
@@ -107,6 +110,24 @@ export const updateReport = async (req, res) => {
 
       let filePath = report.fileUrl;
       let thumbUrl = report.thumbUrl;
+
+      if (file === 'delete') {
+        report.fileUrl &&
+          fs.unlink(path.resolve() + report.fileUrl, function (err) {
+            if (err) {
+              console.log('report.fileUrl delete error', err);
+            } else console.log('report.fileUrl deleted');
+          });
+        report.thumbUrl &&
+          fs.unlink(path.resolve() + report.thumbUrl, function (err) {
+            if (err) {
+              console.log('report.thumbUrl delete error', err);
+            } else console.log('report.thumbUrl deleted');
+          });
+
+        filePath = null;
+        thumbUrl = null;
+      }
 
       if (req.file && req.file.path) {
         console.log(req.file);
@@ -130,9 +151,6 @@ export const updateReport = async (req, res) => {
           default:
             break;
         }
-      } else if (file === 'delete') {
-        filePath = null;
-        thumbUrl = null;
       }
 
       report.title = title || report.title;
@@ -165,6 +183,19 @@ export const deleteReport = async (req, res) => {
     if (report.author.toString() !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
+
+    report.fileUrl &&
+      fs.unlink(path.resolve() + report.fileUrl, function (err) {
+        if (err) {
+          console.log('report.fileUrl delete error', err);
+        } else console.log('report.fileUrl deleted');
+      });
+    report.thumbUrl &&
+      fs.unlink(path.resolve() + report.thumbUrl, function (err) {
+        if (err) {
+          console.log('report.thumbUrl delete error', err);
+        } else console.log('report.thumbUrl deleted');
+      });
 
     await Report.findByIdAndDelete(id);
 

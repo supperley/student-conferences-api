@@ -33,7 +33,15 @@ const uploadDestination = 'uploads';
 const storage = multer.diskStorage({
   destination: uploadDestination,
   filename: function (req, file, cb) {
-    cb(null, Buffer.from(file.originalname, 'latin1').toString('utf8'));
+    // console.log(file);
+    const nameSplit = file.originalname.split('.').slice(0, -1);
+    const name = nameSplit.join('.').replace(/\s/g, '-');
+    const filenameExtension = file.originalname.split('.').pop();
+    // or replace with uuid
+    cb(
+      null,
+      Buffer.from(name, 'latin1').toString('utf8') + '-' + Date.now() + '.' + filenameExtension,
+    );
   },
 });
 

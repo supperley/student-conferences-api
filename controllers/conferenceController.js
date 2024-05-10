@@ -21,9 +21,9 @@ export const createConference = async (req, res) => {
     if (!imagePath) {
       // Генерируем для новой конференции
       const image = jdenticon.toPng(title, 200);
-      const imageName = `conference_${Date.now()}.png`;
-      imagePath = path.join('uploads', imageName);
-      fs.writeFileSync(imagePath, image);
+      const imageName = `conference-${Date.now()}.png`;
+      imagePath = path.join('/uploads', imageName);
+      fs.writeFileSync(path.resolve() + imagePath, image);
     }
 
     const conference = await Conference.create({
@@ -33,7 +33,7 @@ export const createConference = async (req, res) => {
       administrator,
       faculties,
       link,
-      imageUrl: `/${imagePath}`,
+      imageUrl: imagePath,
     });
 
     if (conference) {
@@ -92,10 +92,18 @@ export const updateConference = async (req, res) => {
 
       let imagePath = conference.imageUrl;
 
+      if (image === 'delete') {
+        conference.imageUrl &&
+          fs.unlink(path.resolve() + conference.imageUrl, function (err) {
+            if (err) {
+              console.log('conference.imageUrl delete error', err);
+            } else console.log('conference.imageUrl deleted');
+          });
+        imagePath = null;
+      }
+
       if (req.file && req.file.path) {
         imagePath = `/${req.file.destination}/${req.file.filename}`;
-      } else if (image === 'delete') {
-        imagePath = null;
       }
 
       conference.title = title || conference.title;
@@ -130,6 +138,13 @@ export const deleteConference = async (req, res) => {
     if (conference.administrator.toString() !== req.user.userId && req.user.role !== 'admin') {
       return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
+
+    conference.imageUrl &&
+      fs.unlink(path.resolve() + conference.imageUrl, function (err) {
+        if (err) {
+          console.log('conference.imageUrl delete error', err);
+        } else console.log('conference.imageUrl deleted');
+      });
 
     await Conference.findByIdAndDelete(id);
 

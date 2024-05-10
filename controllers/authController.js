@@ -28,9 +28,9 @@ export const register = async (req, res) => {
 
     // Генерируем аватар для нового пользователя
     const png = jdenticon.toPng(login, 200);
-    const avatarName = `${login}_${Date.now()}.png`;
-    const avatarPath = path.join(path.resolve(), '/uploads', avatarName);
-    fs.writeFileSync(avatarPath, png);
+    const avatarName = `${login}-${Date.now()}.png`;
+    const avatarPath = path.join('/uploads', avatarName);
+    fs.writeFileSync(path.resolve() + avatarPath, png);
 
     const user = await User.create({
       login,

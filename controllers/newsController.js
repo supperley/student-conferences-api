@@ -1,4 +1,6 @@
+import path from 'path';
 import News from '../models/news.js';
+import fs from 'fs';
 
 export const createNews = async (req, res) => {
   try {
@@ -21,7 +23,7 @@ export const createNews = async (req, res) => {
       author: req.user.userId,
       faculties,
       chip,
-      imageUrl: imagePath && `/${imagePath}`,
+      imageUrl: imagePath,
     });
 
     if (news) {
@@ -86,6 +88,13 @@ export const deleteNews = async (req, res) => {
       return res.status(403).json({ status: 'error', message: 'Forbidden' });
     }
 
+    news.imageUrl &&
+      fs.unlink(path.resolve() + news.imageUrl, function (err) {
+        if (err) {
+          console.log('news.imageUrl delete error', err);
+        } else console.log('news.imageUrl deleted');
+      });
+
     await News.findByIdAndDelete(id);
 
     res.status(200).json({ status: 'ok', message: 'News deleted successfully' });
@@ -96,8 +105,6 @@ export const deleteNews = async (req, res) => {
 
 export const updateNews = async (req, res) => {
   try {
-    console.log(req.body);
-    console.log(req.file);
     const { id } = req.params;
 
     const { title, description, faculties, chip, image } = req.body;
@@ -113,10 +120,19 @@ export const updateNews = async (req, res) => {
 
       let imagePath = news.imageUrl;
 
+      if (image === 'delete') {
+        news.imageUrl &&
+          fs.unlink(path.resolve() + news.imageUrl, function (err) {
+            if (err) {
+              console.log('news.imageUrl delete error', err);
+            } else console.log('news.imageUrl deleted');
+          });
+
+        imagePath = null;
+      }
+
       if (req.file && req.file.path) {
         imagePath = `/${req.file.destination}/${req.file.filename}`;
-      } else if (image === 'delete') {
-        imagePath = null;
       }
 
       news.title = title || news.title;

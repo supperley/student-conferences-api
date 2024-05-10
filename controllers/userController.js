@@ -1,4 +1,6 @@
 import User from '../models/user.js';
+import path from 'path';
+import fs from 'fs';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -48,10 +50,18 @@ export const updateUser = async (req, res) => {
 
     let avatarPath = user.avatarUrl;
 
+    if (avatar === 'delete') {
+      user.avatarUrl &&
+        fs.unlink(path.resolve() + user.avatarUrl, function (err) {
+          if (err) {
+            console.log('user.avatarUrl delete error', err);
+          } else console.log('user.avatarUrl deleted');
+        });
+      avatarPath = null;
+    }
+
     if (req.file && req.file.path) {
       avatarPath = `/${req.file.destination}/${req.file.filename}`;
-    } else if (avatar === 'delete') {
-      avatarPath = null;
     }
 
     if (user) {
