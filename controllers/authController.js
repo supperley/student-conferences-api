@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import path from 'path';
 import fs from 'fs';
 import * as jdenticon from 'jdenticon';
+import { sendEmail } from '../utils/sendEmail.js';
+import { changePasswordMail } from '../mails/changePassword.js';
+import crypto from 'node:crypto';
 
 export const register = async (req, res) => {
   try {
@@ -106,22 +109,6 @@ export const logout = async (req, res) => {
 
 export const current = async (req, res) => {
   try {
-    // const user = await prisma.user.findUnique({
-    //   where: { id: req.user.userId },
-    //   include: {
-    //     followers: {
-    //       include: {
-    //         follower: true,
-    //       },
-    //     },
-    //     following: {
-    //       include: {
-    //         following: true,
-    //       },
-    //     },
-    //   },
-    // });
-
     const userId = req?.user?.userId;
     const user = await User.findById(userId);
 
@@ -162,4 +149,79 @@ export const changePassword = async (req, res) => {
     console.error(error);
     return res.status(500).json({ status: 'error', message: error.message });
   }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    // if (!user || user.passwordResetToken) {
+    if (!user) {
+      return res.status(200).json({
+        status: 'success',
+        message:
+          'Если указанный пользователь существует, ссылка для восстановления будет отправлена на почтовый адрес',
+      });
+    }
+    try {
+      const resetToken = user.createPasswordResetToken();
+      await user.save();
+
+      const resetURL = `http://localhost:5173/reset-password?token=${resetToken}`;
+      // TODO => Send Email with this Reset URL to user's email address
+
+      console.log(resetURL);
+
+      await sendEmail(user, changePasswordMail(resetURL));
+
+      return res.status(200).json({
+        status: 'success',
+        message:
+          'Если указанный пользователь существует, ссылка для восстановления будет отправлена на почтовый адрес',
+      });
+    } catch (err) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+      console.error(err);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Произошла ошибка при отправке сообщения',
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  // 1) Get user based on the token
+  const hashedToken = crypto.createHash('sha256').update(req.body.token).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  // 2) If token has not expired, and there is user, set the new password
+  if (!user) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Token is invalid or expired',
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+  user.password = hashedPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Пароль успешно изменен',
+  });
 };

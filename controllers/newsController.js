@@ -120,7 +120,7 @@ export const updateNews = async (req, res) => {
 
       let imagePath = news.imageUrl;
 
-      if (image === 'delete') {
+      if (image === 'delete' || (req.file && req.file.path)) {
         news.imageUrl &&
           fs.unlink(path.resolve() + news.imageUrl, function (err) {
             if (err) {

@@ -50,7 +50,7 @@ export const updateUser = async (req, res) => {
 
     let avatarPath = user.avatarUrl;
 
-    if (avatar === 'delete') {
+    if (avatar === 'delete' || (req.file && req.file.path)) {
       user.avatarUrl &&
         fs.unlink(path.resolve() + user.avatarUrl, function (err) {
           if (err) {

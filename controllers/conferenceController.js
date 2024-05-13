@@ -92,7 +92,7 @@ export const updateConference = async (req, res) => {
 
       let imagePath = conference.imageUrl;
 
-      if (image === 'delete') {
+      if (image === 'delete' || (req.file && req.file.path)) {
         conference.imageUrl &&
           fs.unlink(path.resolve() + conference.imageUrl, function (err) {
             if (err) {

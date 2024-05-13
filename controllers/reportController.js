@@ -3,7 +3,11 @@ import path from 'path';
 import fs from 'fs';
 import Report from '../models/report.js';
 import Comment from '../models/comment.js';
-import { pdfToPng } from 'pdf-to-png-converter';
+import { convert } from 'libreoffice-convert';
+import { promisify } from 'util';
+import { convertFile } from '../utils/convertFile.js';
+
+const convertAsync = promisify(convert);
 
 export const createReport = async (req, res) => {
   try {
@@ -94,24 +98,24 @@ export const updateReport = async (req, res) => {
     const { id } = req.params;
     const { title, description, supervisor, status, file } = req.body;
 
-    console.log(req.file);
-    console.log(req.body);
+    // console.log('req.file', req.file);
+    // console.log('req.body', req.body);
 
     const report = await Report.findById(id);
 
     if (!report) {
       return res.status(404).json({ status: 'error', message: 'Not found' });
     } else {
-      // Проверка, что пользователь изменяет свою конференцию
+      // Проверка, что пользователь изменяет свой отчет
       if (report.author.toString() !== req.user.userId && req.user.role !== 'admin') {
-        console.log(req.user.userId);
+        // console.log(req.user.userId);
         return res.status(403).json({ status: 'error', message: 'Forbidden' });
       }
 
       let filePath = report.fileUrl;
       let thumbUrl = report.thumbUrl;
 
-      if (file === 'delete') {
+      if (file === 'delete' || (req.file && req.file.path)) {
         report.fileUrl &&
           fs.unlink(path.resolve() + report.fileUrl, function (err) {
             if (err) {
@@ -130,26 +134,21 @@ export const updateReport = async (req, res) => {
       }
 
       if (req.file && req.file.path) {
-        console.log(req.file);
+        // console.log(req.file);
         filePath = `/${req.file.destination}/${req.file.filename}`;
         thumbUrl = null;
 
-        switch (req.file.mimetype) {
-          case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-            break;
-          case 'application/pdf':
-            const pngPages = await pdfToPng(
-              req.file.path, // The function accepts PDF file path or a Buffer
-              {
-                outputFolder: 'uploads', // Folder to write output PNG files. If not specified, PNG output will be available only as a Buffer content, without saving to a file.
-                outputFileMask: `thumb_${report?._id}`, // Output filename mask. Default value is 'buffer'.
-                pagesToProcess: [1], // Subset of pages to convert (first page = 1), other pages will be skipped if specified.
-              },
-            );
-            thumbUrl = `/${req.file.destination}/${pngPages[0]?.path.split('\\').pop()}`;
-            break;
-          default:
-            break;
+        try {
+          const ext = '.png';
+          // const outputFile = `${report?._id}-thumb${ext}`;
+          const inputFile = path.join(req.file.destination, req.file.filename);
+          const outputPath = path.join(req.file.destination);
+
+          await convertFile(inputFile, outputPath, 'png');
+
+          thumbUrl = `/${outputPath}/${req.file.filename.split('.').slice(0, -1)}${ext}`;
+        } catch (err) {
+          console.log('Error while creating thumb:', err);
         }
       }
 
