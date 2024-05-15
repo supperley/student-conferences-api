@@ -1,12 +1,12 @@
-import User from '../models/user.js';
-import { createJWT } from '../utils/index.js';
 import bcrypt from 'bcryptjs';
-import path from 'path';
 import fs from 'fs';
 import * as jdenticon from 'jdenticon';
-import { sendEmail } from '../utils/sendEmail.js';
-import { changePasswordMail } from '../mails/changePassword.js';
 import crypto from 'node:crypto';
+import path from 'path';
+import { changePasswordMail } from '../mails/changePassword.js';
+import User from '../models/user.js';
+import { createJWT } from '../utils/index.js';
+import { sendEmail } from '../utils/sendEmail.js';
 
 export const register = async (req, res) => {
   try {
@@ -128,26 +128,35 @@ export const current = async (req, res) => {
 export const changePassword = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { password } = req.body;
+    const { currentPassword, newPassword, repeatPassword } = req.body;
+
+    if (newPassword != repeatPassword) {
+      res.status(400).json({ status: 'error', message: 'Пароли не совпадают' });
+    }
 
     const user = await User.findById(userId);
 
     if (user) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (isMatch) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
 
-      await user.save();
+        await user.save();
+      } else {
+        return res.status(400).json({ status: 'error', message: 'Неверный пароль' });
+      }
 
-      res.status(201).json({
+      return res.status(201).json({
         status: 'ok',
-        message: `Password changed successfully`,
+        message: `Пароль успешно изменен`,
       });
     } else {
-      res.status(404).json({ status: 'error', message: 'User not found' });
+      res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ status: 'error', message: error.message });
+    return res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 };
 
@@ -224,4 +233,16 @@ export const resetPassword = async (req, res) => {
     status: 'success',
     message: 'Пароль успешно изменен',
   });
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    await User.findByIdAndDelete(userId);
+
+    res.status(200).json({ status: 'ok', message: 'Аккаунт успешно удален' });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ status: 'error', message: error.message });
+  }
 };

@@ -12,8 +12,8 @@ import { multerUpload } from '../utils/index.js';
 const router = express.Router();
 
 router.post('/', protectRoute, multerUpload.single('image'), createNews);
-router.get('/', protectRoute, getAllNews);
-router.get('/:id', protectRoute, getNewsById);
+router.get('/', getAllNews);
+router.get('/:id', getNewsById);
 router.patch('/:id', protectRoute, multerUpload.single('image'), updateNews);
 router.delete('/:id', protectRoute, deleteNews);
 

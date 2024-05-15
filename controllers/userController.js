@@ -1,6 +1,6 @@
-import User from '../models/user.js';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+import User from '../models/user.js';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -113,18 +113,5 @@ export const changeStatus = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(400).json({ status: 'ok', message: error.message });
-  }
-};
-
-export const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await User.findByIdAndDelete(id);
-
-    res.status(200).json({ status: 'ok', message: 'User deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    return res.status(400).json({ status: 'error', message: error.message });
   }
 };

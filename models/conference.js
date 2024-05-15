@@ -11,7 +11,7 @@ const ConferenceSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: 'registrationOpen',
-      enum: ['registrationOpen', 'registrationClosed', 'declined', 'completed'],
+      enum: ['registrationOpen', 'registrationClosed', 'declined', 'held', 'completed'],
     },
     // faculties: [{ type: Schema.Types.ObjectId, ref: 'Faculty' }],
     faculties: [{ type: String }],

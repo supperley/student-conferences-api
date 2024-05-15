@@ -2,6 +2,7 @@ import express from 'express';
 import {
   changePassword,
   current,
+  deleteAccount,
   forgotPassword,
   login,
   logout,
@@ -14,10 +15,12 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
-router.get('/current', protectRoute, current);
 router.post('/logout', logout);
-router.post('/change-password', protectRoute, changePassword);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+// protected
+router.get('/current', protectRoute, current);
+router.post('/change-password', protectRoute, changePassword);
+router.post('/delete-account', protectRoute, deleteAccount);
 
 export default router;

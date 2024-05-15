@@ -1,13 +1,8 @@
-import * as jdenticon from 'jdenticon';
-import path from 'path';
 import fs from 'fs';
-import Report from '../models/report.js';
+import path from 'path';
 import Comment from '../models/comment.js';
-import { convert } from 'libreoffice-convert';
-import { promisify } from 'util';
+import Report from '../models/report.js';
 import { convertFile } from '../utils/convertFile.js';
-
-const convertAsync = promisify(convert);
 
 export const createReport = async (req, res) => {
   try {
@@ -17,6 +12,20 @@ export const createReport = async (req, res) => {
 
     if (req.file && req.file.path) {
       filePath = `/${req.file.destination}/${req.file.filename}`;
+      thumbUrl = null;
+
+      try {
+        const ext = '.png';
+        // const outputFile = `${report?._id}-thumb${ext}`;
+        const inputFile = path.join(req.file.destination, req.file.filename);
+        const outputPath = path.join(req.file.destination);
+
+        await convertFile(inputFile, outputPath, 'png');
+
+        thumbUrl = `/${outputPath}/${req.file.filename.split('.').slice(0, -1)}${ext}`;
+      } catch (err) {
+        console.log('Error while creating thumb:', err);
+      }
     }
 
     console.log(req.file);
@@ -25,14 +34,6 @@ export const createReport = async (req, res) => {
     if (!req.user || !conference || !title) {
       return res.status(400).json({ status: 'error', message: 'Проверьте обязательные поля' });
     }
-
-    // if (!filePath) {
-    //   // Генерируем для новой конференции
-    //   const image = jdenticon.toPng(title, 200);
-    //   const imageName = `report-${Date.now()}.png`;
-    //   filePath = path.join('uploads', imageName);
-    //   fs.writeFileSync(filePath, image);
-    // }
 
     const report = await Report.create({
       title,
