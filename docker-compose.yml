@@ -1,0 +1,27 @@
+services:
+  express-app:
+    # Сервер Express
+    build: .
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+      - react-app
+    environment:
+      DATABASE_URL: 'mongodb://root:root@db:27017/mydatabase?authSource=admin&directConnection=true'
+  db:
+    # База данных
+    image: mongodb/mongodb-community-server
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+  react-app:
+    # React-приложение
+    build: ../student-conferences # Путь к вашему React-приложению относительно корня вашего проекта
+    ports:
+      - '80:80' # Порт, на котором будет доступно ваше React-приложение
+      - '8000:8000' # Порт, на котором будет доступно ваше React-приложение
+volumes:
+  react_app: # Объявление именованного тома

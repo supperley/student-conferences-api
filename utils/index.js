@@ -4,7 +4,7 @@ import multer from 'multer';
 
 export const dbConnection = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.DATABASE_URL);
     console.log('DB connection ok');
   } catch (error) {
     console.error('DB Error: ' + error);
