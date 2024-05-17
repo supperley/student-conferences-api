@@ -18,13 +18,17 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      'http://localhost:80',
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://[::1]:5173',
-    ],
-    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+    // origin: [
+    //   'http://localhost',
+    //   'http://localhost:80',
+    //   'http://localhost:3000',
+    //   'http://localhost:5173',
+    //   'http://[::1]:80',
+    //   'http://[::1]:3000',
+    //   'http://[::1]:5173',
+    // ],
+    origin: true,
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH', 'OPTIONS'],
     credentials: true,
   }),
 );

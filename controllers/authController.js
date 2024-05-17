@@ -10,10 +10,10 @@ import { sendEmail } from '../utils/sendEmail.js';
 
 export const register = async (req, res) => {
   try {
-    const { login, email, password, first_name, last_name, role } = req.body;
+    const { email, password, first_name, last_name, role } = req.body;
 
     // Проверяем поля
-    if (!email || !password || !login || !first_name || !last_name) {
+    if (!email || !password || !first_name || !last_name) {
       return res.status(400).json({ status: 'error', message: 'Все поля обязательны' });
     }
 
@@ -30,13 +30,12 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Генерируем аватар для нового пользователя
-    const png = jdenticon.toPng(login, 200);
-    const avatarName = `${login}-${Date.now()}.png`;
+    const png = jdenticon.toPng(email, 200);
+    const avatarName = `${email}-${Date.now()}.png`;
     const avatarPath = path.join('/uploads', avatarName);
     fs.writeFileSync(path.resolve() + avatarPath, png);
 
     const user = await User.create({
-      login,
       email,
       password: hashedPassword,
       first_name,
@@ -50,7 +49,7 @@ export const register = async (req, res) => {
 
       res.status(201).json(user);
     } else {
-      return res.status(400).json({ status: 'error', message: 'Invalid user data' });
+      return res.status(400).json({ status: 'error', message: 'Неверные данные пользователя' });
     }
   } catch (error) {
     console.error(error);
@@ -65,7 +64,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ status: 'error', message: 'Invalid email or password.' });
+      return res.status(400).json({ status: 'error', message: 'Неверный логин или пароль' });
     }
 
     if (!user?.status === 'active') {
@@ -85,7 +84,7 @@ export const login = async (req, res) => {
       res.status(200).json(user);
       // res.json({ token });
     } else {
-      return res.status(400).json({ status: 'error', message: 'Invalid email or password' });
+      return res.status(400).json({ status: 'error', message: 'Неверный логин или пароль' });
     }
   } catch (error) {
     console.error(error);
@@ -238,7 +237,21 @@ export const resetPassword = async (req, res) => {
 export const deleteAccount = async (req, res) => {
   try {
     const { userId } = req.user;
-    await User.findByIdAndDelete(userId);
+
+    const user = await User.findById(userId);
+
+    if (user) {
+      if (user.avatarUrl) {
+        user.avatarUrl &&
+          fs.unlink(path.resolve() + user.avatarUrl, function (err) {
+            if (err) {
+              console.log('user.avatarUrl delete error', err);
+            } else console.log('user.avatarUrl deleted');
+          });
+      }
+
+      await User.findByIdAndDelete(userId);
+    }
 
     res.status(200).json({ status: 'ok', message: 'Аккаунт успешно удален' });
   } catch (error) {

@@ -12,7 +12,7 @@ export const createReport = async (req, res) => {
 
     if (req.file && req.file.path) {
       filePath = `/${req.file.destination}/${req.file.filename}`;
-      thumbUrl = null;
+      let thumbUrl = null;
 
       try {
         const ext = '.png';
@@ -42,6 +42,7 @@ export const createReport = async (req, res) => {
       author: req.user?.userId,
       supervisor,
       fileUrl: filePath,
+      thumbUrl,
     });
 
     if (report) {
@@ -58,6 +59,7 @@ export const createReport = async (req, res) => {
 export const getAllReports = async (req, res) => {
   try {
     const reports = await Report.find({})
+      .sort({ createdAt: -1 })
       .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl'])
       .populate('supervisor', ['_id', 'first_name', 'last_name', 'avatarUrl'])
       .populate('conference', ['_id', 'title']);

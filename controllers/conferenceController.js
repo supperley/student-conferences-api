@@ -1,6 +1,6 @@
+import fs from 'fs';
 import * as jdenticon from 'jdenticon';
 import path from 'path';
-import fs from 'fs';
 import Conference from '../models/conference.js';
 
 export const createConference = async (req, res) => {
@@ -49,7 +49,7 @@ export const createConference = async (req, res) => {
 
 export const getAllConferences = async (req, res) => {
   try {
-    const conferences = await Conference.find({}).populate('administrator');
+    const conferences = await Conference.find({}).sort({ createdAt: -1 }).populate('administrator');
     res.json(conferences);
   } catch (error) {
     console.error(error);

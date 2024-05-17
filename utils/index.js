@@ -4,7 +4,7 @@ import multer from 'multer';
 
 export const dbConnection = async () => {
   try {
-    await mongoose.connect(process.env.DATABASE_URL);
+    await mongoose.connect(process.env.DATABASE_URL, { family: 4 });
     console.log('DB connection ok');
   } catch (error) {
     console.error('DB Error: ' + error);
@@ -19,7 +19,7 @@ export const createJWT = (res, userId) => {
   // Change sameSite from strict to none when you deploy your app
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
+    secure: process.env.NODE_ENV === 'production',
     // sameSite: 'strict', // prevent CSRF attack
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });

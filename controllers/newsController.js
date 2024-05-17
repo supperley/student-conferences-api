@@ -1,6 +1,6 @@
+import fs from 'fs';
 import path from 'path';
 import News from '../models/news.js';
-import fs from 'fs';
 
 export const createNews = async (req, res) => {
   try {
@@ -39,12 +39,9 @@ export const createNews = async (req, res) => {
 
 export const getAllNews = async (req, res) => {
   try {
-    const news = await News.find({}).populate('author', [
-      '_id',
-      'first_name',
-      'last_name',
-      'avatarUrl',
-    ]);
+    const news = await News.find({})
+      .sort({ createdAt: -1 })
+      .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl']);
     res.json(news);
   } catch (error) {
     console.error(error);

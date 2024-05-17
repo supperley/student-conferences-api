@@ -4,7 +4,7 @@ import User from '../models/user.js';
 
 export const getAllUsers = async (req, res) => {
   try {
-    let users = await User.find({});
+    let users = await User.find({}).sort({ createdAt: -1 });
 
     users.forEach((user) => {
       user.password = undefined;
