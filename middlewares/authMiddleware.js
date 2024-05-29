@@ -30,6 +30,17 @@ const protectRoute = async (req, res, next) => {
   }
 };
 
+const isPrivilegedRoute = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'moderator')) {
+    next();
+  } else {
+    return res.status(403).json({
+      status: 'error',
+      message: 'Privileged privileges required',
+    });
+  }
+};
+
 const isAdminRoute = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
@@ -41,4 +52,4 @@ const isAdminRoute = (req, res, next) => {
   }
 };
 
-export { isAdminRoute, protectRoute };
+export { isAdminRoute, isPrivilegedRoute, protectRoute };

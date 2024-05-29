@@ -9,10 +9,10 @@ export const createReport = async (req, res) => {
     const { title, description, supervisor, conference } = req.body;
 
     let filePath;
+    let thumbUrl = null;
 
     if (req.file && req.file.path) {
       filePath = `/${req.file.destination}/${req.file.filename}`;
-      let thumbUrl = null;
 
       try {
         const ext = '.png';
@@ -62,7 +62,7 @@ export const getAllReports = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl'])
       .populate('supervisor', ['_id', 'first_name', 'last_name', 'avatarUrl'])
-      .populate('conference', ['_id', 'title']);
+      .populate('conference', ['_id', 'title', 'administrator']);
     res.json(reports);
   } catch (error) {
     console.error(error);
@@ -76,7 +76,7 @@ export const getReportById = async (req, res) => {
     const report = await Report.findById(post_id)
       .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl', 'position'])
       .populate('supervisor', ['_id', 'first_name', 'last_name', 'avatarUrl', 'position'])
-      .populate('conference', ['_id', 'title']);
+      .populate('conference', ['_id', 'title', 'administrator']);
 
     if (!report) {
       return res.status(404).json({ status: 'error', message: 'Not found' });
@@ -110,7 +110,11 @@ export const updateReport = async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'Not found' });
     } else {
       // Проверка, что пользователь изменяет свой отчет
-      if (report.author.toString() !== req.user.userId && req.user.role !== 'admin') {
+      if (
+        report.author.toString() !== req.user.userId &&
+        req.user.role !== 'admin' &&
+        req.user.role !== 'moderator'
+      ) {
         // console.log(req.user.userId);
         return res.status(403).json({ status: 'error', message: 'Forbidden' });
       }

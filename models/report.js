@@ -15,7 +15,7 @@ const ReportSchema = new mongoose.Schema(
       enum: ['pending', 'accepted', 'declined'],
     },
     fileUrl: { type: String },
-    comments: [{ author: { type: Schema.Types.ObjectId, ref: 'User' }, comment: { type: String } }],
+    // comments: [{ author: { type: Schema.Types.ObjectId, ref: 'User' }, comment: { type: String } }],
   },
   { timestamps: true },
 );
