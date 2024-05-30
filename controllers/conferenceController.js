@@ -1,7 +1,12 @@
+import Docxtemplater from 'docxtemplater';
 import fs from 'fs';
 import * as jdenticon from 'jdenticon';
 import path from 'path';
+import PizZip from 'pizzip';
 import Conference from '../models/conference.js';
+import Report from '../models/report.js';
+// const PizZip = require('pizzip');
+// const Docxtemplater = require('docxtemplater');
 
 export const createConference = async (req, res) => {
   try {
@@ -67,6 +72,72 @@ export const getConferenceById = async (req, res) => {
     }
 
     res.json(conference);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
+
+export const getConferenceParticipants = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const conference = await Conference.findById(id).populate('administrator');
+
+    if (!conference) {
+      return res.status(404).json({ status: 'error', message: 'Not found' });
+    }
+
+    const reports = await Report.find({ conference: id })
+      .sort({ createdAt: -1 })
+      .populate('author', ['first_name', 'last_name', 'patronymic']);
+
+    const templateFile = fs.readFileSync(path.resolve() + '/utils/participantsList.docx', 'binary');
+
+    // Unzip the content of the file
+    const zip = new PizZip(templateFile);
+
+    // This will parse the template, and will throw an error if the template is
+    // invalid, for example, if the template is "{user" (no closing tag)
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      nullGetter() {
+        return '';
+      },
+    });
+
+    console.log(reports);
+
+    const filteredReports = reports.map((report, index) => {
+      return {
+        index: index + 1,
+        first_name: report?.author?.first_name,
+        last_name: report?.author?.last_name,
+        patronymic: report?.author?.patronymic,
+        title: report?.title,
+        supervisor: report?.supervisor,
+      };
+    });
+
+    doc.setData({ reports: filteredReports, title: conference?.title });
+
+    try {
+      doc.render();
+      const buf = doc.getZip().generate({ type: 'nodebuffer' });
+      // fs.writeFileSync(path.resolve(__dirname, "output.docx"), buf);
+
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Disposition': `attachment; filename="output.docx"`,
+        'Content-Length': buf.length,
+      });
+
+      res.send(buf);
+    } catch (error) {
+      console.log(error);
+    }
+
+    //res.json(conference);
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 'error', message: 'Internal server error' });

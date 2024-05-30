@@ -58,10 +58,13 @@ export const createReport = async (req, res) => {
 
 export const getAllReports = async (req, res) => {
   try {
-    const reports = await Report.find({})
+    const { conferenceId } = req?.query;
+    console.log(conferenceId);
+    const query = conferenceId ? { conference: conferenceId } : {};
+
+    const reports = await Report.find(query)
       .sort({ createdAt: -1 })
       .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl'])
-      .populate('supervisor', ['_id', 'first_name', 'last_name', 'avatarUrl'])
       .populate('conference', ['_id', 'title', 'administrator']);
     res.json(reports);
   } catch (error) {
@@ -75,7 +78,6 @@ export const getReportById = async (req, res) => {
   try {
     const report = await Report.findById(post_id)
       .populate('author', ['_id', 'first_name', 'last_name', 'avatarUrl', 'position'])
-      .populate('supervisor', ['_id', 'first_name', 'last_name', 'avatarUrl', 'position'])
       .populate('conference', ['_id', 'title', 'administrator']);
 
     if (!report) {

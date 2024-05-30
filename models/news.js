@@ -8,7 +8,6 @@ const NewsSchema = new mongoose.Schema(
     faculties: [{ type: String }],
     imageUrl: { type: String },
     chip: { type: String },
-    // chip: { label: 'Конференция', value: 'conference' },
   },
   { timestamps: true },
 );
