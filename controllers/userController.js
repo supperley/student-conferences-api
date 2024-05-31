@@ -39,7 +39,8 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { first_name, last_name, email, faculty, position, avatar, role, status } = req.body;
+    const { first_name, last_name, patronymic, email, faculty, position, avatar, role, status } =
+      req.body;
 
     // Проверка, что пользователь обновляет свою информацию
     if (id !== req.user.userId && req.user.role !== 'admin') {
@@ -67,9 +68,10 @@ export const updateUser = async (req, res) => {
     if (user) {
       user.first_name = first_name || user.first_name;
       user.last_name = last_name || user.last_name;
+      user.patronymic = patronymic !== undefined ? patronymic : user.patronymic;
       user.email = email || user.email;
-      user.faculty = faculty || user.faculty;
-      user.position = position || user.position;
+      user.faculty = faculty !== undefined ? faculty : user.faculty;
+      user.position = position !== undefined ? position : user.position;
       user.role = role || user.role;
       user.status = status || user.status;
       user.avatarUrl = avatarPath;

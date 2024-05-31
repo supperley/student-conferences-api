@@ -5,8 +5,6 @@ import path from 'path';
 import PizZip from 'pizzip';
 import Conference from '../models/conference.js';
 import Report from '../models/report.js';
-// const PizZip = require('pizzip');
-// const Docxtemplater = require('docxtemplater');
 
 export const createConference = async (req, res) => {
   try {

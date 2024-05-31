@@ -163,7 +163,7 @@ export const updateReport = async (req, res) => {
 
       report.title = title || report.title;
       report.description = description || report.description;
-      report.supervisor = supervisor || report.supervisor;
+      report.supervisor = supervisor !== undefined ? supervisor : report.supervisor;
       report.status = status || report.status;
       report.fileUrl = filePath;
       report.thumbUrl = thumbUrl;
