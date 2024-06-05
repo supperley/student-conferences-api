@@ -3,13 +3,12 @@ import nodemailer from 'nodemailer';
 export const sendEmail = async (user, mail) => {
   try {
     const mailOptions = mail;
-    // mailOptions.to = user.email;
-    mailOptions.to = 'v.***REMOVED***@yandex.by';
+    mailOptions.to = user.email;
     mailOptions.from = process.env.MAIL_USER;
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.mail.ru',
-      port: 465,
+      host: process.env.MAIL_HOST,
+      port: process.env.MAIL_PORT,
       secure: true,
       auth: {
         user: process.env.MAIL_USER,

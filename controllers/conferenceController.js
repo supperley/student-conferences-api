@@ -52,7 +52,16 @@ export const createConference = async (req, res) => {
 
 export const getAllConferences = async (req, res) => {
   try {
-    const conferences = await Conference.find({}).sort({ createdAt: -1 }).populate('administrator');
+    const conferences = await Conference.find({})
+      .sort({ createdAt: -1 })
+      .populate('administrator', [
+        '_id',
+        'first_name',
+        'last_name',
+        'patronymic',
+        'position',
+        'avatarUrl',
+      ]);
     res.json(conferences);
   } catch (error) {
     console.error(error);
@@ -63,7 +72,14 @@ export const getAllConferences = async (req, res) => {
 export const getConferenceById = async (req, res) => {
   const { id } = req.params;
   try {
-    const conference = await Conference.findById(id).populate('administrator');
+    const conference = await Conference.findById(id).populate('administrator', [
+      '_id',
+      'first_name',
+      'last_name',
+      'patronymic',
+      'position',
+      'avatarUrl',
+    ]);
 
     if (!conference) {
       return res.status(404).json({ status: 'error', message: 'Not found' });
@@ -79,7 +95,14 @@ export const getConferenceById = async (req, res) => {
 export const getConferenceParticipants = async (req, res) => {
   const { id } = req.params;
   try {
-    const conference = await Conference.findById(id).populate('administrator');
+    const conference = await Conference.findById(id).populate('administrator', [
+      '_id',
+      'first_name',
+      'last_name',
+      'patronymic',
+      'position',
+      'avatarUrl',
+    ]);
 
     if (!conference) {
       return res.status(404).json({ status: 'error', message: 'Not found' });
