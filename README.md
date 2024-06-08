@@ -14,13 +14,33 @@ project/
 └── student-conferences-api
 ```
 
-3. Открыть терминал (или командную строку) и перейти в корневую директорию сервера
+2.1. Склонировать репозиторий с API по ссылке [https://github.com/supperley/student-conferences-api.git](https://github.com/supperley/student-conferences-api)
+
+```
+git clone https://github.com/supperley/student-conferences-api.git
+```
+
+2.2. Склонировать репозиторий с клиентским приложением по ссылке https://github.com/supperley/student-conferences.git
+
+```
+git clone https://github.com/supperley/student-conferences.git
+```
+
+3. Перейти в корневую директорию сервера
 
 ```
 cd student-conferences-api
 ```
 
-4. Запустить команду docker compose, которая поднимет сервер, клиент и базу данных
+4. Переименовать файл .env.example (убрать .example), внести необходимые изменения
+
+   > Указать JWT_SECRET (любая строка), host и credentials от почты
+
+```
+.env
+```
+
+5. Запустить команду docker compose, которая поднимет сервер, клиент и базу данных
 
    > При необходимости внести изменения в файл compose.yml
 
@@ -28,7 +48,7 @@ cd student-conferences-api
 docker compose up
 ```
 
-5. Открыть браузер и перейти по адресу http://localhost:80, чтобы увидеть запущенный проект.
+6. Открыть браузер и перейти по адресу http://localhost:80, чтобы увидеть запущенный проект.
 
 ## Для запуска проекта, необходимо выполнить следующие шаги:
 

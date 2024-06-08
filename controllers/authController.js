@@ -177,10 +177,10 @@ export const forgotPassword = async (req, res) => {
       const resetToken = user.createPasswordResetToken();
       await user.save();
 
-      const resetURL = `http://localhost:5173/reset-password?token=${resetToken}`;
+      const resetURL = `${process.env.HOST_URL}/reset-password?token=${resetToken}`;
       // TODO => Send Email with this Reset URL to user's email address
 
-      console.log(resetURL);
+      // console.log(resetURL);
 
       await sendEmail(user, changePasswordMail(resetURL));
 
